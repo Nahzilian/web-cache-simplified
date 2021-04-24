@@ -2,28 +2,28 @@ const { isBrowserCompatible } = require('../helper/utils');
 
 class CacheSimplified {
     constructor(dbname) {
-        this.version = 1
-        this.cacheDB = window.indexedDB.open(dbname, this.version);
+        this.version = 1;
 
-        if (isBrowserCompatible()) throw new Error('Browser is not compatible');
-
-
-        this.cacheDB.onupgradeneeded = e => {
-            const db = e.target.result
-            console.log('Upgraded')
-            console.log(e);
-        }
-
-        this.cacheDB.onsuccess = e => {
-            const db = e.target.result;
-            // db.createObjectStore();
-            console.log('Success')
-            console.log(e);
-        }
-
-        this.cacheDB.onerror = e => {
-            console.log('error')
-            console.log(e);
+        if (typeof window !== "undefined") {
+            if (isBrowserCompatible()) throw new Error('Browser is not compatible');
+            this.cacheDB = window.indexedDB.open(dbname, this.version);
+            this.cacheDB.onupgradeneeded = e => {
+                const db = e.target.result
+                console.log('Upgraded')
+                console.log(e);
+            }
+    
+            this.cacheDB.onsuccess = e => {
+                const db = e.target.result;
+                // db.createObjectStore();
+                console.log('Success')
+                console.log(e);
+            }
+    
+            this.cacheDB.onerror = e => {
+                console.log('error')
+                console.log(e);
+            }
         }
     }
 
@@ -33,7 +33,9 @@ class CacheSimplified {
     }
 
     addTable(table, data) {
-        this.cacheDB.onupgradeneeded = e => {
+        console.log('here')
+        if(this.cacheDB) this.cacheDB.onupgradeneeded = e => {
+            console.log('here 2')
             const db = e.target.result;
             const keyPathObj = this.getKeyPath(data);
             db.createObjectStore(table, { keyPath: keyPathObj })
