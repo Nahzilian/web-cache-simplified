@@ -10,13 +10,23 @@ class CacheSimplified {
         if (!data && typeof data !== 'object') return [""]
         return Object.keys(data);
     }
+    
+    // Check if db exist
+    dbExisted() {
+
+    }
 
     addTable(table, data) {
         this.cacheDB.onupgradeneeded = e => {
             const db = e.target.result;
-            const transaction = e.target.transaction;
             db.createObjectStore(table, { keyPath: this.getKeyPath(data) });
+            this.addData(table, data);
+        }
+    }
 
+    addData(table, data) {
+        this.cacheDB.onupgradeneeded = e => {
+            const transaction = e.target.transaction;
             if (data) {
                 transaction.oncomplete = e => {
                     const trans = db.transaction(table, 'readwrite');
@@ -25,17 +35,6 @@ class CacheSimplified {
                 }
             }
         }
-    }
-
-    addData(table, data) {
-
-    }
-
-
-    // Check if db exist
-
-    dbExisted() {
-
     }
 
     // insert
