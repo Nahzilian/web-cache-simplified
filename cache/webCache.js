@@ -1,45 +1,34 @@
-const { isBrowserCompatible } = require('../helper/utils');
+const isBrowserCompatible = () => { return window.indexedDB };
 
 class CacheSimplified {
     constructor(dbname) {
         this.version = 1;
-
-        if (typeof window !== "undefined") {
-            if (isBrowserCompatible()) throw new Error('Browser is not compatible');
-            this.cacheDB = window.indexedDB.open(dbname, this.version);
-            this.cacheDB.onupgradeneeded = e => {
-                const db = e.target.result
-                console.log('Upgraded')
-                console.log(e);
-            }
-    
-            this.cacheDB.onsuccess = e => {
-                const db = e.target.result;
-                // db.createObjectStore();
-                console.log('Success')
-                console.log(e);
-            }
-    
-            this.cacheDB.onerror = e => {
-                console.log('error')
-                console.log(e);
-            }
-        }
+        this.cacheDB = window.indexedDB.open(dbname, this.version);
     }
 
     getKeyPath(data) {
-        if (data && typeof data !== 'object') return []
+        if (!data && typeof data !== 'object') return [""]
         return Object.keys(data);
     }
 
     addTable(table, data) {
-        console.log('here')
-        if(this.cacheDB) this.cacheDB.onupgradeneeded = e => {
-            console.log('here 2')
+        this.cacheDB.onupgradeneeded = e => {
             const db = e.target.result;
-            const keyPathObj = this.getKeyPath(data);
-            db.createObjectStore(table, { keyPath: keyPathObj })
+            const transaction = e.target.transaction;
+            db.createObjectStore(table, { keyPath: this.getKeyPath(data) });
+
+            if (data) {
+                transaction.oncomplete = e => {
+                    const trans = db.transaction(table, 'readwrite');
+                    const tb = trans.objectStore(table);
+                    tb.add(data);
+                }
+            }
         }
+    }
+
+    addData(table, data) {
+
     }
 
 
@@ -55,9 +44,10 @@ class CacheSimplified {
     }
     // update
 
+    updateTable() {
+
+    }
+
     // delete
 
 }
-
-
-module.exports = CacheSimplified
